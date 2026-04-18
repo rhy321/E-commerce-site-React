@@ -1,8 +1,34 @@
 import './tracking.css';
 import { Header } from '../components/header';
-import { Link } from 'react-router';
+import { Link, useParams } from 'react-router';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import dayjs from 'dayjs';
+import { deliveryProgress } from '../utils/deliveryProgress';
+import { DeliveryStatus } from '../components/DeliveryStatus';
 
 export function TrackingPage({cart}) {
+  const {orderId, productId} = useParams();
+  console.log(orderId);
+  console.log(productId);
+
+  const [order, setOrder] = useState(null);
+
+  useEffect(()=>{
+    const getOrderData= async()=>{
+      const response = await axios.get(`/api/orders/${orderId}?expand=products`)
+      setOrder(response.data);
+    }
+    getOrderData();
+  },[orderId]);
+  
+  if(!order) {return null;}
+
+  const selectedProduct = order.products.find((productOption) => {
+      return(productOption.productId === productId);
+    }
+  );
+
   return (
     <>
       <title>Tracking</title>
@@ -15,35 +41,32 @@ export function TrackingPage({cart}) {
           <Link className="back-to-orders-link link-primary" to="/orders">
             View all orders
           </Link>
+          
 
           <div className="delivery-date">
-            Arriving on Monday, June 13
+            {deliveryProgress({selectedProduct, order}) >= 100 ? 
+            'Delivered on ':
+            'Arriving on '}
+            {dayjs(selectedProduct.estimatedDeliveryTimeMs).format('dddd, MMMM D')}
           </div>
 
           <div className="product-info">
-            Black and Gray Athletic Cotton Socks - 6 Pairs
+            {selectedProduct.product.name}
           </div>
 
           <div className="product-info">
-            Quantity: 1
+            Quantity: {selectedProduct.quantity}
           </div>
 
-          <img className="product-image" src="images/products/athletic-cotton-socks-6-pairs.jpg" />
+          <img className="product-image" src= {selectedProduct.product.image} />
 
-          <div className="progress-labels-container">
-            <div className="progress-label">
-              Preparing
-            </div>
-            <div className="progress-label current-status">
-              Shipped
-            </div>
-            <div className="progress-label">
-              Delivered
-            </div>
-          </div>
+          <DeliveryStatus deliveryPercent={deliveryProgress({selectedProduct, order})}/>
 
           <div className="progress-bar-container">
-            <div className="progress-bar"></div>
+            <div className="progress-bar" 
+            style = {{width:`${deliveryProgress({selectedProduct, order})}%`}}>
+
+            </div>
           </div>
         </div>
       </div>
