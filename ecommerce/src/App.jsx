@@ -3,33 +3,34 @@ import { Routes, Route } from 'react-router'
 import { OrdersPage } from './pages/orders/Orders'
 import { CheckoutPage } from './pages/checkout/CheckoutPage'
 import { TrackingPage } from './pages/Tracking'
-import {ErrorPage} from './pages/ErrorPage'
+import { ErrorPage } from './pages/ErrorPage'
 import './App.css'
 import { useEffect } from 'react'
-import {useState } from 'react'
+import { useState } from 'react'
 import axios from 'axios'
 
 function App() {
 
   const [cart, setCart] = useState([]);
 
+  const loadCart = async () => {
+    const response = await axios.get('/api/cart-items?expand=product')
+    setCart(response.data);
+  }
+
   useEffect(() => {
-    const fetchAppData = async () => {
-      const response = await axios.get('/api/cart-items?expand=product')
-      setCart(response.data);
-    }
-    fetchAppData();
+    loadCart();  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  
+
 
   return (
     <Routes>
       {/* <Route path="/" element={<HomePage />}></Route> */}
-      <Route index element={<HomePage cart={cart} />} />
-      <Route path="checkout" element={<CheckoutPage cart={cart}/>} />
-      <Route path="orders" element={ <OrdersPage cart={cart} />}/>
-      <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart}/>} />
-      <Route path="*" element={< ErrorPage cart={cart}/>}/>
+      <Route index element={<HomePage cart={cart} loadCart={loadCart} />} />
+      <Route path="checkout" element={<CheckoutPage cart={cart} />} />
+      <Route path="orders" element={<OrdersPage cart={cart} />} />
+      <Route path="tracking/:orderId/:productId" element={<TrackingPage cart={cart} />} />
+      <Route path="*" element={< ErrorPage cart={cart} />} />
     </Routes>
   )
 }
