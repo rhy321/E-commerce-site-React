@@ -8,7 +8,7 @@ import axios from 'axios';
 import { HomePage } from './HomePage';
 
 vi.mock('axios');
-//9:47
+
 describe('HomePage component', () => {
 
   let loadCart;
